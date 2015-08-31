@@ -1,0 +1,13 @@
+{
+  "name": "screeps",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc -p ./src",
+    "publish": "npm run build && grunt screeps"
+  },
+  "devDependencies": {
+    "grunt": "^0.4.5",
+    "grunt-screeps": "^1.1.0"
+  }
+}

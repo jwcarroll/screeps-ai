@@ -1,0 +1,10 @@
+{
+    "version": "0.1.0",
+    "command": "tsc",
+    "isShellCommand": true,
+    "showOutput": "silent",
+    "args": [
+        "--project","./src/"
+    ],
+    "problemMatcher": "$tsc"
+}
