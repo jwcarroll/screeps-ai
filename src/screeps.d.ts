@@ -15,7 +15,7 @@ interface IGame {
    notify(message: string, groupInterval?: number): void;
 }
 
-declare class Creep { }
+declare var Creep: ICreep;
 
 interface ICreep extends IHasRoomPosition {
    body: { type: string, hits: number }[];
@@ -25,7 +25,7 @@ interface ICreep extends IHasRoomPosition {
    hits: number;
    hitsMax: number;
    id: string;
-   memory: any;
+   memory: any | ICreepMemory;
    my: boolean;
    name: string;
    owner: IOwner;
@@ -44,7 +44,7 @@ interface ICreep extends IHasRoomPosition {
    move(direction: number): ActionResultCode;
    moveByPath(path: IPathStep[]): ActionResultCode;
    moveTo(x: number, y: number, opts?: MoveToOptions);
-   moveTo(target: RoomPosition|IHasRoomPosition);
+   moveTo(target: IRoomPosition|IHasRoomPosition, opts?: MoveToOptions);
    notifyWhenAttacked(enabled: boolean): ActionResultCode;
    pickup(target: IEnergy): ActionResultCode;
    rangedAttack(target: ICreep|ISpawn|IStructure): ActionResultCode;
@@ -58,7 +58,11 @@ interface ICreep extends IHasRoomPosition {
    upgradeController(target: IStructure): ActionResultCode;
 }
 
-declare class RoomPosition {
+interface ICreepMemory { }
+
+declare var RoomPosition: IRoomPosition;
+
+interface IRoomPosition {
    constructor(x: number, y: number, roomName: string);
    roomName: string;
    x: number;
@@ -67,21 +71,21 @@ declare class RoomPosition {
    createFlag(name?: string, color?: string): ActionResultCode;
    findClosest(type: number, opts?: IPathfindingOptions|IFilterOption|IPathfindingAlgorithmOption): any;
    findClosest(objects: any[], opts?: IPathfindingOptions|IFilterOption|IPathfindingAlgorithmOption): any;
-   findClosestByRange(type: number, opts?: IFilterOption): any;
+   findClosestByRange<T>(type: number, opts?: IFilterOption): T;
    findClosestByRange(objects: any[], opts?: IFilterOption): any;
    findInRange<T>(type: number, range: number, opts?: IFilterOption): T[];
    findInRange(objects, range: number, opts?: IFilterOption): any[];
    findPathTo(x: number, y: number, opts?: IPathfindingOptions): IPathStep[];
-   findPathTo(target: RoomPosition|IHasRoomPosition, opts?: IPathfindingOptions): IPathStep[];
+   findPathTo(target: IRoomPosition|IHasRoomPosition, opts?: IPathfindingOptions): IPathStep[];
    getDirectionTo(x: number, y: number): number;
-   getDirectionTo(target: RoomPosition|IHasRoomPosition): number;
+   getDirectionTo(target: IRoomPosition|IHasRoomPosition): number;
    getRangeTo(x: number, y: number): number;
-   getRangeTo(target: RoomPosition|IHasRoomPosition): number;
-   inRangeTo(toPos: RoomPosition|IHasRoomPosition, range: number): boolean;
+   getRangeTo(target: IRoomPosition|IHasRoomPosition): number;
+   inRangeTo(toPos: IRoomPosition|IHasRoomPosition, range: number): boolean;
    isEqualTo(x: number, y: number): boolean;
-   isEqualTo(target: RoomPosition|IHasRoomPosition): boolean;
+   isEqualTo(target: IRoomPosition|IHasRoomPosition): boolean;
    isNearTo(x: number, y: number): boolean;
-   isNearTo(target: RoomPosition|IHasRoomPosition): boolean;
+   isNearTo(target: IRoomPosition|IHasRoomPosition): boolean;
    look(): { type: string }[];
    lookFor(type: string): any[];
    lookFor(type: 'constructionSite'): IConstructionSite[];
@@ -95,7 +99,7 @@ declare class RoomPosition {
 }
 
 interface IHasRoomPosition {
-   pos: RoomPosition;
+   pos: IRoomPosition;
 }
 
 interface IFlag extends IHasRoomPosition {
@@ -108,7 +112,7 @@ interface IFlag extends IHasRoomPosition {
    remove(): ActionResultCode;
    setColor(color: string): ActionResultCode;
    setPosition(x: number, y: number): ActionResultCode;
-   setPosition(pos: RoomPosition|IHasRoomPosition): ActionResultCode;
+   setPosition(pos: IRoomPosition|IHasRoomPosition): ActionResultCode;
 }
 
 interface IEnergy extends IHasRoomPosition {
@@ -116,6 +120,8 @@ interface IEnergy extends IHasRoomPosition {
    id: string;
    room: IRoom;
 }
+
+declare var Spawn: ISpawn;
 
 interface ISpawn extends IHasRoomPosition {
    energy: number;
@@ -225,6 +231,8 @@ interface IMap {
    isRoomProtected(roomName: string): boolean;
 }
 
+declare var Room: IRoom;
+
 interface IRoom {
    controller?: IController;
    energyAvailable: number;
@@ -235,15 +243,15 @@ interface IRoom {
    storage?: IStorage;
    survivalInfo?: { score: number, timeToWave: number, wave: number };
    createConstructionSite(x: number, y: number, structureType: string): ActionResultCode;
-   createConstructionSite(pos: RoomPosition|IHasRoomPosition, structureType: string): ActionResultCode;
+   createConstructionSite(pos: IRoomPosition|IHasRoomPosition, structureType: string): ActionResultCode;
    createFlag(x: number, y: number, name?: string, color?: string): ActionResultCode;
-   createFlag(pos: RoomPosition|IHasRoomPosition, name?: string, color?: string): ActionResultCode;
+   createFlag(pos: IRoomPosition|IHasRoomPosition, name?: string, color?: string): ActionResultCode;
    find<T>(type: number, opts?: IFilterOption): T[];
    findExitTo(room: string|IRoom): number;
-   findPath(fromPos: RoomPosition, toPos: RoomPosition, opts?: IPathfindingOptions): IPathStep[];
-   getPositionAt(x: number, y: number): RoomPosition;
+   findPath(fromPos: IRoomPosition, toPos: IRoomPosition, opts?: IPathfindingOptions): IPathStep[];
+   getPositionAt(x: number, y: number): IRoomPosition;
    lookAt(x: number, y: number): { type: string }[];
-   lookAt(target: RoomPosition|IHasRoomPosition): { type: string }[];
+   lookAt(target: IRoomPosition|IHasRoomPosition): { type: string }[];
    lookAtArea(top: number, left: number, bottom: number, right: number): IAreaFindResults<{ type: string }>;
    lookForAt(type: string, x: number, y: number): any[];
    lookForAt(type: 'constructionSite', x: number, y: number): IConstructionSite[];
@@ -254,15 +262,15 @@ interface IRoom {
    lookForAt(type: 'source', x: number, y: number): ISource[];
    lookForAt(type: 'structure', x: number, y: number): IStructure[];
    lookForAt(type: 'terrain', x: number, y: number): ITerrain[];
-   lookForAt(type: string, target: RoomPosition|IHasRoomPosition): any[];
-   lookForAt(type: 'constructionSite', target: RoomPosition|IHasRoomPosition): IConstructionSite[];
-   lookForAt(type: 'creep', target: RoomPosition|IHasRoomPosition): ICreep[];
-   lookForAt(type: 'energy', target: RoomPosition|IHasRoomPosition): IEnergy[];
-   lookForAt(type: 'exit', target: RoomPosition|IHasRoomPosition): IExit[];
-   lookForAt(type: 'flag', target: RoomPosition|IHasRoomPosition): IFlag[];
-   lookForAt(type: 'source', target: RoomPosition|IHasRoomPosition): ISource[];
-   lookForAt(type: 'structure', target: RoomPosition|IHasRoomPosition): IStructure[];
-   lookForAt(type: 'terrain', target: RoomPosition|IHasRoomPosition): ITerrain[];
+   lookForAt(type: string, target: IRoomPosition|IHasRoomPosition): any[];
+   lookForAt(type: 'constructionSite', target: IRoomPosition|IHasRoomPosition): IConstructionSite[];
+   lookForAt(type: 'creep', target: IRoomPosition|IHasRoomPosition): ICreep[];
+   lookForAt(type: 'energy', target: IRoomPosition|IHasRoomPosition): IEnergy[];
+   lookForAt(type: 'exit', target: IRoomPosition|IHasRoomPosition): IExit[];
+   lookForAt(type: 'flag', target: IRoomPosition|IHasRoomPosition): IFlag[];
+   lookForAt(type: 'source', target: IRoomPosition|IHasRoomPosition): ISource[];
+   lookForAt(type: 'structure', target: IRoomPosition|IHasRoomPosition): IStructure[];
+   lookForAt(type: 'terrain', target: IRoomPosition|IHasRoomPosition): ITerrain[];
    lookForAtArea(type: string, top: number, left: number, bottom: number, right: number): IAreaFindResults<any>;
    lookForAtArea(type: 'constructionSite', top: number, left: number, bottom: number, right: number): IAreaFindResults<IConstructionSite>;
    lookForAtArea(type: 'creep', top: number, left: number, bottom: number, right: number): IAreaFindResults<ICreep>;
@@ -343,6 +351,8 @@ declare type MoveToOptions = IPathfindingOptions|IReusePathOptions;
 //
 declare type ActionResultCode = number;
 
+declare var Memory;
+
 declare const OK: number;
 declare const ERR_NOT_OWNER: number;
 declare const ERR_NO_PATH: number;
@@ -358,6 +368,16 @@ declare const ERR_TIRED: number;
 declare const ERR_NO_BODYPART: number;
 declare const ERR_RCL_NOT_ENOUGH: number;
 declare const ERR_GCL_NOT_ENOUGH: number;
+
+//Direction Constants
+declare const BOTTOM;
+declare const BOTTOM_LEFT;
+declare const BOTTOM_RIGHT;
+declare const LEFT;
+declare const RIGHT;
+declare const TOP;
+declare const TOP_LEFT;
+declare const TOP_RIGHT;
 
 //Search Type Constants
 declare const FIND_CREEPS: number;
@@ -389,6 +409,7 @@ declare const STRUCTURE_KEEPER_LAIR: string;
 declare const STRUCTURE_PORTAL: string;
 declare const STRUCTURE_CONTROLLER: string;
 declare const STRUCTURE_LINK: string;
+declare const STRUCTURE_STORAGE: string;
 
 //Flag Color Constants
 declare const COLOR_WHITE: string;
